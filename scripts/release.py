@@ -5,6 +5,13 @@ import re
 import subprocess
 
 
+def check_tools() -> None:
+    command = ['which', 'hub']
+    ret_code = subprocess.call(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if ret_code != 0:
+        raise Exception("Error: command 'hub' is not installed")
+
+
 def create_tag() -> str:
     # create new tag as per current release
     command = ['git', 'tag']
@@ -51,7 +58,7 @@ def check_version(jar_path: str, release_version: str):
     print(f"===== Perses version: v{perses_version_number}; Release version: {release_version}")
 
     if perses_version_number != release_version[1:]:
-        raise Exception("ERROR: Perses version check fails. Update version info in source code and commit.")
+        raise Exception("Error: Perses version check fails. Update version info in source code and commit.")
     print("===== * PASSED : Version check")
     return
 
@@ -69,11 +76,13 @@ def check_repository():
     return
 
 
-
 def main():
     # ensure in root folder
     if not os.path.exists("WORKSPACE"):
         raise Exception('ERROR: This script should be run in the root folder of the project.')
+
+    # check prerequisite tools
+    check_tools()
 
     tag_name = create_tag()
     title = f"Perses {tag_name}"
