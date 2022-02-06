@@ -49,7 +49,7 @@ def build_binary() -> str:
 
 def check_version(jar_path: str, release_version: str):
     # return True if perses version is consistent with current releasing version
-    command = ['java', '-jar', f'{jar_path}', '--version',]
+    command = ['java', '-jar', f'{jar_path}', '--version', ]
     version_info = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.read()
 
     version_info = version_info.decode(encoding='utf-8')
@@ -76,6 +76,22 @@ def check_repository():
     return
 
 
+def call_hub_release(attach, message, tag):
+    try:
+        release_command = ['hub', 'release', 'create', '--browse', f"--attach={attach}", f'--message={message}', tag]
+        pipe = None
+        subprocess.check_call(
+            release_command,
+            stdout=pipe,
+            stderr=pipe)
+    except subprocess.CalledProcessError as e:
+        print("Error: hub release failed", e)
+        print("If it is username/password related:")
+        print("\t1. go to https://github.com/settings/tokens/, and create a token.")
+        print("\t2. the token should be in the repo and gist scope.")
+        print("\t3. input the token as the password.")
+
+
 def main():
     # ensure in root folder
     if not os.path.exists("WORKSPACE"):
@@ -95,13 +111,7 @@ def main():
     check_repository()
 
     # release
-    release_command = ['hub', 'release', 'create', '--browse', f"--attach={jar_path}", f'--message={title}', tag_name]
-
-    pipe = None
-    subprocess.check_call(
-        release_command,
-        stdout=pipe,
-        stderr=pipe)
+    call_hub_release(jar_path, title, tag_name)
 
 
 if __name__ == "__main__":
